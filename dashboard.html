@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ClawRecall Dashboard</title>
+  <style>body {font-family: Arial; padding: 20px; background: #f8f9fa;}
+    h1 {color: #e63946;} input {width: 100%; padding: 15px; font-size: 18px;}
+    pre {background: white; padding: 15px; border: 1px solid #ddd;}</style>
+</head>
+<body>
+  <h1>🦞 ClawRecall Dashboard (Free)</h1>
+  <p>Search anything your agent remembers:</p>
+  <input type="text" id="search" placeholder="My budget... my trip plans...">
+  <pre id="result">Results will appear here...</pre>
+
+  <script>
+    document.getElementById('search').addEventListener('keyup', function() {
+      const term = this.value.toLowerCase();
+      document.getElementById('result').textContent = 'Searching memory for: ' + term + '\n\n(Full dashboard with openclaw dashboard --memory)';
+    });
+  </script>
+</body>
+</html>
