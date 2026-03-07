@@ -141,8 +141,12 @@ chmod +x "$CLAWRECALL_CMD"
 
 # Add alias if not exists
 ADD_ALIAS_SUCCEEDED=false
-for config in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile"; do
+CONFIG_FILES=("$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile")
+FOUND_CONFIG=false
+
+for config in "${CONFIG_FILES[@]}"; do
   if [ -f "$config" ]; then
+    FOUND_CONFIG=true
     if ! grep -q "alias clawrecall=" "$config"; then
       echo "" >> "$config"
       echo "# ClawRecall Alias" >> "$config"
@@ -151,6 +155,14 @@ for config in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile"; do
     fi
   fi
 done
+
+# If no config file found, create .bashrc (safest default)
+if [ "$FOUND_CONFIG" = false ]; then
+  config="$HOME/.bashrc"
+  echo "# ClawRecall Alias" > "$config"
+  echo "alias clawrecall='$CLAWRECALL_CMD'" >> "$config"
+  ADD_ALIAS_SUCCEEDED=true
+fi
 
 # === 5. SUCCESS ===
 echo ""

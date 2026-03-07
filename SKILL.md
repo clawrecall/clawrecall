@@ -32,5 +32,5 @@ In Telegram/WhatsApp say:
 - “Start task: Plan my trip” (it creates working-context.md)
 
 ## Dashboard
-Run in Terminal: openclaw dashboard --memory  
+Run in Terminal: clawrecall dashboard
 Or open: ~/.openclaw/skills/clawrecall/dashboard.html
