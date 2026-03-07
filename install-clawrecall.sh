@@ -116,9 +116,26 @@ curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/dashboar
 
 run_openclaw skills load
 
+# === 4. SUCCESS ===
 echo ""
 echo "🎉 ClawRecall Free installed successfully!"
 echo "Skills path: $SKILL_PATH/clawrecall"
-echo "Open dashboard: openclaw dashboard --memory"
+
+# Detective work to open dashboard
+OPEN_CMD=""
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  OPEN_CMD="open"
+elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
+  OPEN_CMD="xdg-open"
+elif [ "$IS_WINDOWS" = true ]; then
+  OPEN_CMD="explorer"
+fi
+
+if [ -n "$OPEN_CMD" ]; then
+  echo "Open dashboard: $OPEN_CMD \"$SKILL_PATH/clawrecall/dashboard.html\""
+else
+  echo "Open dashboard: Open $SKILL_PATH/clawrecall/dashboard.html in your browser"
+fi
+
 echo "Talk to agent: 'Enable ClawRecall'"
 echo "For Pro upgrade: https://clawrecall.in"
