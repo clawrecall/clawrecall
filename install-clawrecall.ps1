@@ -1,4 +1,10 @@
 # ClawRecall Windows Installer v2.0
+if (-not (Get-Command openclaw -ErrorAction SilentlyContinue)) {
+    Write-Host "❌ Error: OpenClaw gateway is not installed." -ForegroundColor Red
+    Write-Host "Please install it first: npm install -g @openclaw/gateway" -ForegroundColor Yellow
+    exit 1
+}
+
 Write-Host "🚀 Installing ClawRecall (Windows)..." -ForegroundColor Green
 
 $skillsPath = "$env:USERPROFILE\.openclaw\skills\clawrecall"

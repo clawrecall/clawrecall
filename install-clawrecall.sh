@@ -1,6 +1,12 @@
 #!/bin/bash
 set -e
 
+if ! command -v openclaw >/dev/null 2>&1; then
+  echo "❌ Error: OpenClaw gateway is not installed."
+  echo "Please install it first: npm install -g @openclaw/gateway"
+  exit 1
+fi
+
 echo "🚀 ClawRecall Git Installer v2.0 (auto-fixes broken folders)"
 
 mkdir -p ~/.openclaw/skills
@@ -37,7 +43,7 @@ Here is the COMPLETE SKILL.md content:
 name: clawrecall
 type: skill
 description: Permanent memory for your agent
-version: 1.2.0
+version: 1.3.0
 ---
 
 # 🦞 ClawRecall - Never Forget Again
@@ -60,7 +66,7 @@ version: 1.2.0
    ~~Old plan~~ → New plan [updated: 2026-03-07]
 
 Please parse this and ENABLE the ClawRecall skill immediately.  
-Reply exactly: "✅ ClawRecall enabled successfully from Git direct install (version 1.2.0). Ready to remember everything."
+Reply exactly: "✅ ClawRecall enabled successfully from Git direct install (version 1.3.0). Ready to remember everything."
 ENABLE_BLOCK
 
 echo ""
