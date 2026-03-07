@@ -1,4 +1,4 @@
-# ClawRecall Windows Installer v2.0
+# ClawRecall Windows Installer v2.1 (Sync with v1.3.0)
 if (-not (Get-Command openclaw -ErrorAction SilentlyContinue)) {
     Write-Host "❌ Error: OpenClaw gateway is not installed." -ForegroundColor Red
     Write-Host "Please install it first: npm install -g @openclaw/gateway" -ForegroundColor Yellow

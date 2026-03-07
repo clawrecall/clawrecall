@@ -48,6 +48,13 @@ version: 1.3.0
 
 # 🦞 ClawRecall - Never Forget Again
 
+## Critical Requirement (new in v1.3.0)
+This skill REQUIRES filesystem tools. If the agent says it cannot read/write, run:
+`openclaw config set tools.profile "coding"` then restart.
+
+## Tool Requirement (new in v1.3.0)
+This skill REQUIRES filesystem tools (read, write, append). If they are missing, politely ask the user to switch to "coding" or "full" tool profile in openclaw.json or enable group:filesystem.
+
 ## Free version features
 - Creates permanent MEMORY.md with dates and struck-through old facts
 - Adds working-context.md for tasks in progress (no mid-task forgetting)
