@@ -1,9 +1,22 @@
 #!/bin/bash
-echo "🚀 Installing OpenClaw + ClawRecall Free..."
+echo "🚀 ClawRecall Free Installer"
 
-# Run official OpenClaw installer + onboard
-curl -fsSL https://openclaw.ai/install.sh | bash
-openclaw onboard --install-daemon
+# === Check if OpenClaw is already installed ===
+if command -v openclaw >/dev/null 2>&1; then
+  echo "✅ OpenClaw is already installed!"
+  echo ""
+  read -p "Do you want to update OpenClaw? (y/N): " UPDATE
+  if [[ "$UPDATE" =~ ^[Yy]$ ]]; then
+    echo "Updating OpenClaw..."
+    curl -fsSL https://openclaw.ai/install.sh | bash
+  else
+    echo "Skipping OpenClaw update — installing ClawRecall only."
+  fi
+else
+  echo "Installing OpenClaw..."
+  curl -fsSL https://openclaw.ai/install.sh | bash
+  openclaw onboard --install-daemon
+fi
 
 echo ""
 echo "🦞 Where should ClawRecall skills be installed?"
