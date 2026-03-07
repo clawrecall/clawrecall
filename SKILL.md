@@ -1,9 +1,8 @@
 ---
 name: clawrecall
-description: Permanent memory upgrade for OpenClaw - agents never forget again
+type: skill
+description: Permanent memory for your agent
 version: 1.1.0
-author: YourName
-tags: memory, recall, context, dashboard
 ---
 
 # 🦞 ClawRecall - Never Forget Again

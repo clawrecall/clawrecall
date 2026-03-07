@@ -139,6 +139,19 @@ esac
 EOF
 chmod +x "$CLAWRECALL_CMD"
 
+# Windows: Create .cmd for CMD/PowerShell support
+if [ "$IS_WINDOWS" = true ]; then
+  NPM_GLOBAL_BIN=$(npm config get prefix 2>/dev/null)
+  if [ -n "$NPM_GLOBAL_BIN" ]; then
+    echo "@echo off" > "$NPM_GLOBAL_BIN/clawrecall.cmd"
+    echo "if \"%1\"==\"dashboard\" (" >> "$NPM_GLOBAL_BIN/clawrecall.cmd"
+    echo "    explorer \"\$(cygpath -w "$SKILL_PATH/clawrecall/dashboard.html")\"" >> "$NPM_GLOBAL_BIN/clawrecall.cmd"
+    echo ") else (" >> "$NPM_GLOBAL_BIN/clawrecall.cmd"
+    echo "    echo Usage: clawrecall dashboard" >> "$NPM_GLOBAL_BIN/clawrecall.cmd"
+    echo ")" >> "$NPM_GLOBAL_BIN/clawrecall.cmd"
+  fi
+fi
+
 # Add alias if not exists
 ADD_ALIAS_SUCCEEDED=false
 CONFIG_FILES=("$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile")
