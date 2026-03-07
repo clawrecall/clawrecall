@@ -33,7 +33,8 @@ run_openclaw() {
 # === 1. Check if OpenClaw is already installed ===
 if command -v openclaw >/dev/null 2>&1; then
   echo "✅ OpenClaw is already installed."
-  read -p "Do you want to update OpenClaw? (y/N): " update_choice
+  # Read from /dev/tty to handle cases where script is piped (e.g., curl | bash)
+  read -p "Do you want to update OpenClaw? (y/N): " update_choice < /dev/tty
   if [[ "$update_choice" =~ ^[Yy]$ ]]; then
     echo "Updating OpenClaw..."
     if [ "$IS_WINDOWS" = true ]; then
@@ -49,16 +50,21 @@ else
   if [ "$IS_WINDOWS" = true ]; then
     # We use powershell for the official installer which handles Windows native setup
     powershell -Command "iwr -useb https://openclaw.ai/install.ps1 | iex"
-    # Small wait to ensure filesystem sync
-    sleep 2
+    # Wait to ensure installation finishes and files are written
+    echo "Wait 5s for installer to finish..."
+    sleep 5
   else
     curl -fsSL https://openclaw.ai/install.sh | bash
   fi
 fi
 
+# Refresh PATH/Commands before running onboard
+# (handled in run_openclaw fallback, but we'll call it carefully)
+
 # === 2. Run onboard (always after install/update) ===
 echo "Starting setup..."
-run_openclaw onboard --install-daemon
+# Ensure it runs interactively if it's a TTY session
+run_openclaw onboard --install-daemon < /dev/tty
 
 # === 3. Ask for skills path ===
 echo ""
@@ -66,7 +72,8 @@ echo "🦞 Where should ClawRecall skills be installed?"
 echo "Default is ~/.openclaw/skills (recommended)"
 # Ensure we handle home directory correctly on Windows bash
 DEFAULT_SKILL_PATH="$HOME/.openclaw/skills"
-read -p "Skills path [$DEFAULT_SKILL_PATH]: " SKILL_PATH
+# Use /dev/tty for interactive input
+read -p "Skills path [$DEFAULT_SKILL_PATH]: " SKILL_PATH < /dev/tty
 SKILL_PATH=${SKILL_PATH:-$DEFAULT_SKILL_PATH}
 
 # Expand tilde if present
