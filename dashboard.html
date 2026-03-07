@@ -1,22 +1,119 @@
 <!DOCTYPE html>
-<html>
+<html lang="en" class="dark">
+
 <head>
-  <title>ClawRecall Dashboard</title>
-  <style>body {font-family: Arial; padding: 20px; background: #f8f9fa;}
-    h1 {color: #e63946;} input {width: 100%; padding: 15px; font-size: 18px;}
-    pre {background: white; padding: 15px; border: 1px solid #ddd;}</style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🦞 ClawRecall Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+    }
+
+    .fact {
+      transition: all 0.2s;
+    }
+
+    .fact:hover {
+      transform: translateX(4px);
+    }
+  </style>
 </head>
-<body>
-  <h1>🦞 ClawRecall Dashboard (Free)</h1>
-  <p>Search anything your agent remembers:</p>
-  <input type="text" id="search" placeholder="My budget... my trip plans...">
-  <pre id="result">Results will appear here...</pre>
+
+<body class="bg-zinc-950 text-zinc-200 min-h-screen p-6">
+  <div class="max-w-4xl mx-auto">
+    <div class="flex items-center justify-between mb-8">
+      <h1 class="text-4xl font-bold flex items-center gap-3">
+        🦞 ClawRecall <span class="text-teal-400 text-2xl">Dashboard</span>
+      </h1>
+      <div class="text-sm text-zinc-500">v2.0 • Made in Madurai</div>
+    </div>
+
+    <div class="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
+      <div class="flex gap-4 mb-6">
+        <button onclick="loadFile('memory')"
+          class="flex-1 bg-teal-600 hover:bg-teal-500 px-6 py-4 rounded-xl font-medium transition">
+          📂 Load MEMORY.md
+        </button>
+        <button onclick="loadFile('context')"
+          class="flex-1 bg-orange-600 hover:bg-orange-500 px-6 py-4 rounded-xl font-medium transition">
+          📂 Load working-context.md
+        </button>
+      </div>
+
+      <input id="searchInput" type="text" placeholder="Search memories... (e.g. cardamom)" onkeyup="filterResults()"
+        class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-500">
+
+      <div id="results" class="mt-8 space-y-6 min-h-[300px]"></div>
+    </div>
+
+    <div class="text-center mt-6 text-xs text-zinc-500">
+      Tip: Open this file anytime or run <code class="bg-zinc-800 px-2 py-1 rounded">clawrecall dashboard</code> in
+      terminal
+    </div>
+  </div>
 
   <script>
-    document.getElementById('search').addEventListener('keyup', function() {
-      const term = this.value.toLowerCase();
-      document.getElementById('result').textContent = 'Searching memory for: ' + term + '\n\n(Full dashboard with clawrecall dashboard)';
-    });
+    let currentContent = '';
+    let currentFileType = '';
+
+    async function loadFile(type) {
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = '.md';
+      input.onchange = async e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const text = await file.text();
+        currentContent = text;
+        currentFileType = type === 'memory' ? 'MEMORY.md' : 'working-context.md';
+
+        document.getElementById('results').innerHTML = `
+          <div class="text-teal-400 text-sm mb-4">Loaded: ${currentFileType} (${file.name})</div>
+          ${parseAndRender(text)}
+        `;
+      };
+      input.click();
+    }
+
+    function parseAndRender(md) {
+      const lines = md.split('\n');
+      let html = '';
+      let currentSection = '';
+
+      lines.forEach(line => {
+        if (line.startsWith('## ')) {
+          currentSection = line;
+          html += `<div class="text-teal-400 font-semibold text-lg mt-8 mb-3">${line}</div>`;
+        } else if (line.startsWith('- ')) {
+          html += `<div class="fact bg-zinc-800 border-l-4 border-teal-500 pl-5 py-3 rounded-r-xl text-zinc-300">${line}</div>`;
+        } else if (line.trim()) {
+          html += `<div class="text-zinc-400 text-sm pl-5">${line}</div>`;
+        }
+      });
+
+      return html || '<p class="text-zinc-500">No entries yet. Remember something forever!</p>';
+    }
+
+    function filterResults() {
+      const term = document.getElementById('searchInput').value.toLowerCase().trim();
+      if (!currentContent) return;
+
+      const filtered = currentContent.split('\n').filter(line =>
+        line.toLowerCase().includes(term)
+      ).join('\n');
+
+      document.getElementById('results').innerHTML = `
+        <div class="text-teal-400 text-sm mb-4">Showing matches for: <span class="font-mono">"${term}"</span> in ${currentFileType}</div>
+        ${parseAndRender(filtered || currentContent)}
+      `;
+    }
+
+    // Auto dark mode
+    document.documentElement.classList.add('dark');
   </script>
 </body>
+
 </html>
