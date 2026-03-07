@@ -4,6 +4,11 @@ type: skill
 description: Permanent memory for your agent
 version: 1.1.0
 ---
+## Installation note (Git version)
+This skill was installed directly from https://github.com/clawrecall/clawrecall.
+All files are in ~/.openclaw/skills/clawrecall/
+No further setup needed after enable.
+
 
 # 🦞 ClawRecall - Never Forget Again
 
