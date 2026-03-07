@@ -1,20 +1,13 @@
 #!/bin/bash
 echo "🚀 ClawRecall Free Installer"
 
-# === Check if OpenClaw is already installed ===
-if command -v openclaw >/dev/null 2>&1; then
-  echo "✅ OpenClaw is already installed!"
-  echo ""
-  read -p "Do you want to update OpenClaw? (y/N): " UPDATE
-  if [[ "$UPDATE" =~ ^[Yy]$ ]]; then
-    echo "Updating OpenClaw..."
-    curl -fsSL https://openclaw.ai/install.sh | bash
-  else
-    echo "Skipping OpenClaw update — installing ClawRecall only."
-  fi
-else
+# === 1. Ensure OpenClaw is installed + onboard is done ===
+if ! command -v openclaw >/dev/null 2>&1; then
   echo "Installing OpenClaw..."
   curl -fsSL https://openclaw.ai/install.sh | bash
+  openclaw onboard --install-daemon
+else
+  echo "✅ OpenClaw detected. Running onboard to set workspace..."
   openclaw onboard --install-daemon
 fi
 
@@ -31,7 +24,8 @@ cd "$SKILL_PATH/clawrecall"
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/SKILL.md -o SKILL.md
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/dashboard.html -o dashboard.html
 
-openclaw skills load .
+# Safe skill load (no extra arguments)
+openclaw skills load
 
 echo ""
 echo "🎉 ClawRecall Free installed successfully!"
