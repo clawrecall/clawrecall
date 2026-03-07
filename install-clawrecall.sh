@@ -25,6 +25,9 @@ fi
 
 echo "✅ Files ready!"
 
+openclaw config set tools.profile "coding"
+openclaw gateway restart
+
 cat << 'ENABLE_BLOCK'
 I just installed/updated ClawRecall from Git (v2 installer).
 
