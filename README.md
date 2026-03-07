@@ -1,6 +1,8 @@
-# ClawRecall - OpenClaw Memory Fix
+# ClawRecall - Free Version
 
-One command: Never let your OpenClaw agent forget again.
+Permanent memory upgrade for OpenClaw agents. Never forget again.
+
+## One-Command Install (works on Windows, Mac & Linux)
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/install-clawrecall.sh | bash
