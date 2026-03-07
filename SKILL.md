@@ -9,7 +9,6 @@ This skill was installed directly from https://github.com/clawrecall/clawrecall.
 All files are in ~/.openclaw/skills/clawrecall/
 No further setup needed after enable.
 
-
 # 🦞 ClawRecall - Never Forget Again
 
 ## Free version features
