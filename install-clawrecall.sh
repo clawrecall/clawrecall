@@ -3,38 +3,71 @@ echo "🚀 ClawRecall Free Installer - Intelligent Mode"
 
 # === DETECT WINDOWS / GIT BASH EARLY ===
 IS_WINDOWS=false
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "$MSYSTEM" || "$OS" == "Windows_NT" ]]; then
+if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "$MSYSTEM" || "$OS" == "Windows_NT" || -n "$WINDIR" ]]; then
   IS_WINDOWS=true
   echo "🪟 Detected Windows environment"
 fi
 
-# Function to run openclaw with PATH fallback
+# Function to run openclaw with PATH fallback and wait loop
 run_openclaw() {
-  if command -v openclaw >/dev/null 2>&1; then
-    openclaw "$@"
-  elif [ "$IS_WINDOWS" = true ]; then
-    # On Windows, attempt to find it in common npm global paths if not in PATH
-    local NPM_GLOBAL_BIN
-    NPM_GLOBAL_BIN=$(npm config get prefix 2>/dev/null)
-    if [ -n "$NPM_GLOBAL_BIN" ] && [ -f "$NPM_GLOBAL_BIN/openclaw" ]; then
-      "$NPM_GLOBAL_BIN/openclaw" "$@"
-    elif [ -f "$APPDATA/npm/openclaw" ]; then
-      "$APPDATA/npm/openclaw" "$@"
-    else
-      echo "❌ openclaw command not found. Please restart your terminal or add npm global bin to your PATH."
-      exit 1
+  local cmd_found=false
+  local timeout=30
+  local count=0
+
+  while [ "$cmd_found" = false ] && [ $count -lt $timeout ]; do
+    if command -v openclaw >/dev/null 2>&1; then
+      cmd_found=true
+      openclaw "$@"
+      return $?
+    elif [ "$IS_WINDOWS" = true ]; then
+      local NPM_GLOBAL_BIN
+      NPM_GLOBAL_BIN=$(npm config get prefix 2>/dev/null)
+      if [ -n "$NPM_GLOBAL_BIN" ] && [ -f "$NPM_GLOBAL_BIN/openclaw" ]; then
+        cmd_found=true
+        "$NPM_GLOBAL_BIN/openclaw" "$@"
+        return $?
+      elif [ -f "$APPDATA/npm/openclaw" ]; then
+        cmd_found=true
+        "$APPDATA/npm/openclaw" "$@"
+        return $?
+      fi
     fi
+    
+    if [ $count -eq 0 ]; then
+      echo "⌛ Waiting for openclaw command to be available..."
+    fi
+    sleep 1
+    ((count++))
+  done
+
+  echo "❌ openclaw command not found after $timeout seconds. Please restart your terminal."
+  exit 1
+}
+
+# Helper for interactive read when piped
+interactive_read() {
+  local prompt="$1"
+  local var_name="$2"
+  local default_val="$3"
+  
+  if [ -c /dev/tty ]; then
+    read -p "$prompt" "$var_name" < /dev/tty
   else
-    echo "❌ openclaw command not found."
-    exit 1
+    # Fallback if no TTY (rare but possible in some CI/wrappers)
+    read -p "$prompt" "$var_name"
+  fi
+  
+  local val
+  eval "val=\$$var_name"
+  if [ -z "$val" ]; then
+    eval "$var_name=\"$default_val\""
   fi
 }
 
 # === 1. Check if OpenClaw is already installed ===
 if command -v openclaw >/dev/null 2>&1; then
   echo "✅ OpenClaw is already installed."
-  # Read from /dev/tty to handle cases where script is piped (e.g., curl | bash)
-  read -p "Do you want to update OpenClaw? (y/N): " update_choice < /dev/tty
+  interactive_read "Do you want to update OpenClaw? (y/N): " update_choice "n"
   if [[ "$update_choice" =~ ^[Yy]$ ]]; then
     echo "Updating OpenClaw..."
     if [ "$IS_WINDOWS" = true ]; then
@@ -48,35 +81,29 @@ if command -v openclaw >/dev/null 2>&1; then
 else
   echo "OpenClaw not found. Installing now..."
   if [ "$IS_WINDOWS" = true ]; then
-    # We use powershell for the official installer which handles Windows native setup
     powershell -Command "iwr -useb https://openclaw.ai/install.ps1 | iex"
-    # Wait to ensure installation finishes and files are written
-    echo "Wait 5s for installer to finish..."
-    sleep 5
+    # The installer might spawn background processes, so we let the wait loop handle it
   else
     curl -fsSL https://openclaw.ai/install.sh | bash
   fi
 fi
 
-# Refresh PATH/Commands before running onboard
-# (handled in run_openclaw fallback, but we'll call it carefully)
-
 # === 2. Run onboard (always after install/update) ===
 echo "Starting setup..."
-# Ensure it runs interactively if it's a TTY session
-run_openclaw onboard --install-daemon < /dev/tty
+if [ -c /dev/tty ]; then
+  run_openclaw onboard --install-daemon < /dev/tty
+else
+  run_openclaw onboard --install-daemon
+fi
 
 # === 3. Ask for skills path ===
 echo ""
 echo "🦞 Where should ClawRecall skills be installed?"
 echo "Default is ~/.openclaw/skills (recommended)"
-# Ensure we handle home directory correctly on Windows bash
 DEFAULT_SKILL_PATH="$HOME/.openclaw/skills"
-# Use /dev/tty for interactive input
-read -p "Skills path [$DEFAULT_SKILL_PATH]: " SKILL_PATH < /dev/tty
-SKILL_PATH=${SKILL_PATH:-$DEFAULT_SKILL_PATH}
+interactive_read "Skills path [$DEFAULT_SKILL_PATH]: " SKILL_PATH "$DEFAULT_SKILL_PATH"
 
-# Expand tilde if present
+# Expand tilde
 SKILL_PATH="${SKILL_PATH/#\~/$HOME}"
 
 mkdir -p "$SKILL_PATH/clawrecall"
