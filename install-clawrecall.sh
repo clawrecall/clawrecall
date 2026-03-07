@@ -1,32 +1,40 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Installing/Updating ClawRecall directly from Git (free version)..."
+echo "🚀 ClawRecall Git Installer v2.0 (auto-fixes broken folders)"
 
 mkdir -p ~/.openclaw/skills
 cd ~/.openclaw/skills
 
 if [ -d "clawrecall" ]; then
-  echo "📥 Updating existing ClawRecall..."
-  cd clawrecall && git pull --ff-only || (git reset --hard HEAD && git pull)
+  if [ -d "clawrecall/.git" ]; then
+    echo "📥 Updating existing Git repo..."
+    cd clawrecall
+    git pull --ff-only || (git reset --hard HEAD && git pull)
+  else
+    echo "⚠️ Folder exists but not Git repo → cleaning and recloning..."
+    rm -rf clawrecall
+    git clone https://github.com/clawrecall/clawrecall.git clawrecall
+    cd clawrecall
+  fi
 else
-  echo "📥 Cloning fresh ClawRecall..."
+  echo "📥 Fresh cloning ClawRecall..."
   git clone https://github.com/clawrecall/clawrecall.git clawrecall
   cd clawrecall
 fi
 
-echo "✅ Files placed. Now paste the block below into your agent:"
+echo "✅ Files ready!"
 
 cat << 'ENABLE_BLOCK'
-I just installed ClawRecall from https://github.com/clawrecall/clawrecall using the install script.
+I just installed/updated ClawRecall from Git (v2 installer).
 
-Here is the COMPLETE and EXACT content of ~/.openclaw/skills/clawrecall/SKILL.md:
+Here is the COMPLETE SKILL.md content:
 
 ---
 name: clawrecall
 type: skill
 description: Permanent memory for your agent
-version: 1.1.0
+version: 1.2.0
 ---
 
 # 🦞 ClawRecall - Never Forget Again
@@ -37,30 +45,22 @@ version: 1.1.0
 - Agent auto-summarizes chats and saves key facts
 - Simple beautiful dashboard for phone/browser search/edit
 
-## Rules your agent MUST follow (inspired by real user fixes)
+## Rules your agent MUST follow
 1. Always check MEMORY.md + working-context.md before answering
 2. When you say “remember this forever” → add to MEMORY.md with date
 3. During any task → update working-context.md live
 4. Every chat end → extract facts and append to MEMORY.md
-5. Use this format:
-   ## Important Facts [2026-03-04]
+5. Use this exact format:
+   ## Important Facts [2026-03-07]
    - Your budget is ₹50,000
-   ## Decisions [2026-03-04]
-   ~~Old plan~~ → New plan [updated: 2026-03-04]
+   ## Decisions [2026-03-07]
+   ~~Old plan~~ → New plan [updated: 2026-03-07]
 
-## How to use
-In Telegram/WhatsApp say:
-- “Enable ClawRecall”
-- “Remember this forever: My wife’s birthday is 15th June”
-- “Start task: Plan my trip” (it creates working-context.md)
-
-## Dashboard
-Run in Terminal: clawrecall dashboard
-Or open: ~/.openclaw/skills/clawrecall/dashboard.html
-
-I have now provided the full SKILL.md content directly. Please parse it and ENABLE the ClawRecall skill immediately. After enabling, reply exactly with: "✅ ClawRecall enabled successfully from Git direct install (version 1.1.0). Ready to remember everything."
+Please parse this and ENABLE the ClawRecall skill immediately.  
+Reply exactly: "✅ ClawRecall enabled successfully from Git direct install (version 1.2.0). Ready to remember everything."
 ENABLE_BLOCK
 
 echo ""
-echo "🎉 After pasting and enabling, test with: Remember this forever: Test"
+echo "🎉 Paste the block above into your OpenClaw chat now."
+echo "Test: Remember this forever: Test from Git install"
 echo "Future updates: just run this script again."
