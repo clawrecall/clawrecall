@@ -18,7 +18,7 @@ curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/install-
 ## How to use
 1. Run the command above in Terminal / Git Bash
 2. Openclaw will install + ClawRecall free skill
-3. Open the dashboard: Run `explorer dashboard.html` (Windows) or `open dashboard.html` (Mac) in the skills path
+3. Open the dashboard: Run `clawrecall dashboard`
 4. Say to your agent: "Enable ClawRecall"
 5. Test: "Remember this forever: My budget is ₹50,000"
 

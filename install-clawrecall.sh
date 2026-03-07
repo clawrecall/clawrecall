@@ -114,27 +114,54 @@ echo "📥 Downloading ClawRecall skills..."
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/SKILL.md -o SKILL.md
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/dashboard.html -o dashboard.html
 
-run_openclaw skills load
+# === 4. SETUP CLI ===
+CLAWRECALL_CMD="$SKILL_PATH/clawrecall/clawrecall"
+cat <<EOF > "$CLAWRECALL_CMD"
+#!/bin/bash
+case "\$1" in
+  dashboard)
+    if [[ "\$OSTYPE" == "darwin"* ]]; then
+      open "$SKILL_PATH/clawrecall/dashboard.html"
+    elif [[ "\$OSTYPE" == "linux-gnu"* ]]; then
+      xdg-open "$SKILL_PATH/clawrecall/dashboard.html"
+    elif [[ "\$OSTYPE" == "msys" || "\$OSTYPE" == "cygwin" ]]; then
+      # Convert to Windows path for explorer
+      WIN_PATH=\$(cygpath -w "$SKILL_PATH/clawrecall/dashboard.html")
+      explorer "\$WIN_PATH"
+    else
+      echo "Please open $SKILL_PATH/clawrecall/dashboard.html manually."
+    fi
+    ;;
+  *)
+    echo "Usage: clawrecall dashboard"
+    ;;
+esac
+EOF
+chmod +x "$CLAWRECALL_CMD"
 
-# === 4. SUCCESS ===
+# Add alias if not exists
+ADD_ALIAS_SUCCEEDED=false
+for config in "$HOME/.bashrc" "$HOME/.zshrc" "$HOME/.bash_profile"; do
+  if [ -f "$config" ]; then
+    if ! grep -q "alias clawrecall=" "$config"; then
+      echo "" >> "$config"
+      echo "# ClawRecall Alias" >> "$config"
+      echo "alias clawrecall='$CLAWRECALL_CMD'" >> "$config"
+      ADD_ALIAS_SUCCEEDED=true
+    fi
+  fi
+done
+
+# === 5. SUCCESS ===
 echo ""
 echo "🎉 ClawRecall Free installed successfully!"
 echo "Skills path: $SKILL_PATH/clawrecall"
 
-# Detective work to open dashboard
-OPEN_CMD=""
-if [[ "$OSTYPE" == "darwin"* ]]; then
-  OPEN_CMD="open"
-elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
-  OPEN_CMD="xdg-open"
-elif [ "$IS_WINDOWS" = true ]; then
-  OPEN_CMD="explorer"
-fi
-
-if [ -n "$OPEN_CMD" ]; then
-  echo "Open dashboard: $OPEN_CMD \"$SKILL_PATH/clawrecall/dashboard.html\""
+if [ "$ADD_ALIAS_SUCCEEDED" = true ]; then
+  echo "🚀 Command enabled: Run 'source ~/.bashrc' (or restart terminal)"
+  echo "Open dashboard: clawrecall dashboard"
 else
-  echo "Open dashboard: Open $SKILL_PATH/clawrecall/dashboard.html in your browser"
+  echo "Open dashboard: $CLAWRECALL_CMD dashboard"
 fi
 
 echo "Talk to agent: 'Enable ClawRecall'"
