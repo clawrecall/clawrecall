@@ -2,10 +2,15 @@
 name: clawrecall
 type: skill
 description: Permanent memory for your agent
-version: 1.2.0
+version: 1.3.0
 ---
 
 # 🦞 ClawRecall - Never Forget Again
+
+## Tool Requirement (new in v1.3.0)
+This skill REQUIRES filesystem tools (read, write, append). If they are missing, politely ask the user to switch to "coding" or "full" tool profile in openclaw.json or enable group:filesystem.
+
+[Rest of your existing SKILL.md content remains exactly the same]
 
 ## Free version features
 - Creates permanent **MEMORY.md** with dates and struck-through old facts
