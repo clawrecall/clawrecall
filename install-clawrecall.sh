@@ -1,39 +1,29 @@
 #!/bin/bash
 echo "🚀 Installing OpenClaw + ClawRecall Free..."
 
-# === OS DETECTION & FRIENDLY HANDLING ===
-if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" || -n "$MSYSTEM" ]]; then
-  echo "🪟 Detected Windows + Git Bash"
-  echo "The official OpenClaw installer doesn't support Git Bash directly."
-  echo "We'll use the recommended PowerShell method instead."
-  
-  echo "Running official OpenClaw installer via PowerShell..."
-  powershell -Command "iwr -useb https://openclaw.ai/install.ps1 | iex"
-  
-  echo "✅ OpenClaw installed via PowerShell"
-else
-  # Mac / Linux / WSL
-  echo "🐧 Detected macOS / Linux / WSL"
-  curl -fsSL https://openclaw.ai/install.sh | bash
-fi
+# Run official OpenClaw installer + onboard
+curl -fsSL https://openclaw.ai/install.sh | bash
+openclaw onboard --install-daemon
 
-# === Continue with ClawRecall Free (works on all OS) ===
-echo "🦞 Installing ClawRecall Free skill..."
+echo ""
+echo "🦞 Where should ClawRecall skills be installed?"
+echo "Default is ~/.openclaw/skills (recommended)"
+read -p "Skills path [~/.openclaw/skills]: " SKILL_PATH
+SKILL_PATH=${SKILL_PATH:-~/.openclaw/skills}
 
-# Create folders
-mkdir -p ~/.openclaw/skills/clawrecall
-cd ~/.openclaw/skills/clawrecall
+mkdir -p "$SKILL_PATH/clawrecall"
+cd "$SKILL_PATH/clawrecall"
 
 # Download free files
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/SKILL.md -o SKILL.md
 curl -fsSL https://raw.githubusercontent.com/clawrecall/clawrecall/main/dashboard.html -o dashboard.html
 
-# Load the skill
-openclaw skills load . 2>/dev/null || echo "✅ ClawRecall Free installed!"
+openclaw skills load .
 
 echo ""
-echo "🎉 SUCCESS! ClawRecall Free is ready."
+echo "🎉 ClawRecall Free installed successfully!"
+echo "Skills path: $SKILL_PATH/clawrecall"
 echo "Open dashboard: openclaw dashboard --memory"
 echo "Talk to your agent: 'Enable ClawRecall'"
 echo ""
-echo "For Pro upgrade, go to https://clawrecall.in"
+echo "For Pro upgrade: https://clawrecall.in"
