@@ -4,115 +4,164 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🦞 ClawRecall Dashboard</title>
+  <title>🦞 ClawRecall Dashboard v2.1</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body {
       font-family: system-ui, sans-serif;
     }
 
+    .highlight {
+      background-color: #4ade80;
+      color: #000;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+
     .fact {
-      transition: all 0.2s;
+      transition: all 0.2s ease;
     }
 
     .fact:hover {
-      transform: translateX(4px);
+      transform: translateX(6px);
+      background-color: #27272a;
     }
   </style>
 </head>
 
 <body class="bg-zinc-950 text-zinc-200 min-h-screen p-6">
-  <div class="max-w-4xl mx-auto">
+  <div class="max-w-5xl mx-auto">
     <div class="flex items-center justify-between mb-8">
       <h1 class="text-4xl font-bold flex items-center gap-3">
-        🦞 ClawRecall <span class="text-teal-400 text-2xl">Dashboard</span>
+        🦞 ClawRecall <span class="text-teal-400">Dashboard v2.1</span>
       </h1>
-      <div class="text-sm text-zinc-500">v2.0 • Made in Madurai</div>
+      <div class="text-sm text-zinc-500">Auto-load + Smart Search • Made in Madurai</div>
     </div>
 
-    <div class="bg-zinc-900 rounded-2xl p-8 border border-zinc-800">
-      <div class="flex gap-4 mb-6">
-        <button onclick="loadFile('memory')"
-          class="flex-1 bg-teal-600 hover:bg-teal-500 px-6 py-4 rounded-xl font-medium transition">
-          📂 Load MEMORY.md
+    <div class="bg-zinc-900 rounded-3xl p-8 border border-zinc-800">
+      <!-- Auto Load -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+        <button onclick="autoLoadFile('MEMORY.md')"
+          class="bg-teal-600 hover:bg-teal-500 p-6 rounded-2xl font-medium text-lg transition flex items-center justify-center gap-3">
+          📂 Auto Load MEMORY.md (Default Path)
         </button>
-        <button onclick="loadFile('context')"
-          class="flex-1 bg-orange-600 hover:bg-orange-500 px-6 py-4 rounded-xl font-medium transition">
-          📂 Load working-context.md
+        <button onclick="autoLoadFile('working-context.md')"
+          class="bg-orange-600 hover:bg-orange-500 p-6 rounded-2xl font-medium text-lg transition flex items-center justify-center gap-3">
+          📂 Auto Load working-context.md
         </button>
       </div>
 
-      <input id="searchInput" type="text" placeholder="Search memories... (e.g. cardamom)" onkeyup="filterResults()"
-        class="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-5 py-4 text-lg focus:outline-none focus:border-teal-500">
+      <!-- Search -->
+      <div class="flex gap-3 mb-6">
+        <input id="searchInput" type="text" placeholder="Search memories... (try 'cardamom')" onkeyup="filterResults()"
+          class="flex-1 bg-zinc-800 border border-zinc-700 rounded-2xl px-6 py-4 text-lg focus:outline-none focus:border-teal-500">
+        <button onclick="clearSearch()"
+          class="px-8 py-4 bg-zinc-800 hover:bg-zinc-700 rounded-2xl text-sm">Clear</button>
+      </div>
 
-      <div id="results" class="mt-8 space-y-6 min-h-[300px]"></div>
+      <div id="status" class="text-sm text-teal-400 mb-6 min-h-[28px]"></div>
+      <div id="results" class="space-y-6"></div>
     </div>
 
-    <div class="text-center mt-6 text-xs text-zinc-500">
-      Tip: Open this file anytime or run <code class="bg-zinc-800 px-2 py-1 rounded">clawrecall dashboard</code> in
-      terminal
+    <div class="text-center mt-8 text-xs text-zinc-500">
+      Your files live at: <code class="bg-zinc-800 px-2 py-1 rounded">%USERPROFILE%\.openclaw\workspace\</code><br>
+      Future updates will auto-open this improved dashboard.
     </div>
   </div>
 
   <script>
     let currentContent = '';
-    let currentFileType = '';
+    let currentFilename = '';
 
-    async function loadFile(type) {
+    async function autoLoadFile(filename) {
+      const status = document.getElementById('status');
+      status.textContent = `🔄 Trying to auto-load ${filename} from standard path...`;
+
+      try {
+        // Relative path works because dashboard is in skills/clawrecall/
+        const res = await fetch(`../../workspace/${filename}`);
+        if (!res.ok) throw new Error('File not found at default path');
+
+        const text = await res.text();
+        currentContent = text;
+        currentFilename = filename;
+
+        status.innerHTML = `✅ <strong>Auto-loaded ${filename}</strong> successfully!`;
+        renderContent(text);
+      } catch (err) {
+        status.innerHTML = `⚠️ Auto-load failed (common in some browsers). Falling back to manual...`;
+        setTimeout(() => manualLoadFile(), 800);
+      }
+    }
+
+    function manualLoadFile() {
       const input = document.createElement('input');
       input.type = 'file';
       input.accept = '.md';
-      input.onchange = async e => {
+      input.onchange = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
         const text = await file.text();
         currentContent = text;
-        currentFileType = type === 'memory' ? 'MEMORY.md' : 'working-context.md';
-
-        document.getElementById('results').innerHTML = `
-          <div class="text-teal-400 text-sm mb-4">Loaded: ${currentFileType} (${file.name})</div>
-          ${parseAndRender(text)}
-        `;
+        currentFilename = file.name;
+        document.getElementById('status').innerHTML = `✅ Loaded <strong>${file.name}</strong>`;
+        renderContent(text);
       };
       input.click();
     }
 
-    function parseAndRender(md) {
+    function renderContent(md) {
       const lines = md.split('\n');
       let html = '';
-      let currentSection = '';
-
       lines.forEach(line => {
         if (line.startsWith('## ')) {
-          currentSection = line;
           html += `<div class="text-teal-400 font-semibold text-lg mt-8 mb-3">${line}</div>`;
         } else if (line.startsWith('- ')) {
-          html += `<div class="fact bg-zinc-800 border-l-4 border-teal-500 pl-5 py-3 rounded-r-xl text-zinc-300">${line}</div>`;
+          html += `<div class="fact bg-zinc-800 border-l-4 border-teal-500 pl-5 py-3 rounded-r-xl">${line}</div>`;
         } else if (line.trim()) {
           html += `<div class="text-zinc-400 text-sm pl-5">${line}</div>`;
         }
       });
-
-      return html || '<p class="text-zinc-500">No entries yet. Remember something forever!</p>';
+      document.getElementById('results').innerHTML = html || '<p class="text-zinc-500 italic">No entries yet.</p>';
     }
 
     function filterResults() {
       const term = document.getElementById('searchInput').value.toLowerCase().trim();
-      if (!currentContent) return;
+      if (!currentContent || !term) {
+        renderContent(currentContent);
+        return;
+      }
 
-      const filtered = currentContent.split('\n').filter(line =>
-        line.toLowerCase().includes(term)
-      ).join('\n');
+      const lines = currentContent.split('\n');
+      let html = '';
+      let inSection = false;
 
-      document.getElementById('results').innerHTML = `
-        <div class="text-teal-400 text-sm mb-4">Showing matches for: <span class="font-mono">"${term}"</span> in ${currentFileType}</div>
-        ${parseAndRender(filtered || currentContent)}
-      `;
+      lines.forEach(line => {
+        const lower = line.toLowerCase();
+        if (line.startsWith('## ')) {
+          inSection = lower.includes(term);
+          if (inSection) html += `<div class="text-teal-400 font-semibold text-lg mt-8 mb-3">${line}</div>`;
+        } else if (inSection && (line.startsWith('- ') || line.trim())) {
+          let displayLine = line;
+          if (lower.includes(term)) {
+            displayLine = line.replace(new RegExp(`(${term})`, 'gi'), '<span class="highlight">$1</span>');
+          }
+          html += line.startsWith('- ')
+            ? `<div class="fact bg-zinc-800 border-l-4 border-teal-500 pl-5 py-3 rounded-r-xl">${displayLine}</div>`
+            : `<div class="text-zinc-400 text-sm pl-5">${displayLine}</div>`;
+        }
+      });
+
+      document.getElementById('results').innerHTML = html || `<p class="text-orange-400">No matches for "<strong>${term}</strong>"</p>`;
     }
 
-    // Auto dark mode
-    document.documentElement.classList.add('dark');
+    function clearSearch() {
+      document.getElementById('searchInput').value = '';
+      renderContent(currentContent);
+    }
+
+    // Welcome message
+    document.getElementById('status').innerHTML = '👆 Click the big teal button to auto-load MEMORY.md';
   </script>
 </body>
 
